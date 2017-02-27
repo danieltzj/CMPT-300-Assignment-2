@@ -15,16 +15,26 @@ void func()
 
 int main()
 {
+	unsigned long long runs = 100000;
 	struct timespec start;
 	struct timespec stop;
 	unsigned long long result; //64 bit integer
+	unsigned long long totalTime = 0;
+	unsigned long long averageTime;
 
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	func();
-	clock_gettime(CLOCK_MONOTONIC, &stop);
+	int i;
+	for (i = 0; i < runs; i++)
+	{
+		clock_gettime(CLOCK_MONOTONIC, &start);
+		func();
+		clock_gettime(CLOCK_MONOTONIC, &stop);
 
-	// Use the function to get the difference between the two times
-	result=timespecDiff(&stop,&start);
+		// Use the function to get the difference between the two times
+		result=timespecDiff(&stop,&start);
 
-	printf("CLOCK_REALTIME Measured: %llu\n",result);
+		totalTime += result;
+	}
+	averageTime = totalTime / runs;
+
+	printf("Average time for a function call using CLOCK_MONOTONIC for %llu cycles: %llu\n", runs, result);
 }
