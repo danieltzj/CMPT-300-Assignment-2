@@ -11,7 +11,7 @@ unsigned long long timespecDiff(struct timespec *timeA_p, struct timespec *timeB
 
 int main()
 {
-	unsigned long long runs = 100000;
+	unsigned long long iterations = 10;
 	pid_t pid;
 	struct timespec start;
 	struct timespec stop;
@@ -20,18 +20,19 @@ int main()
 	unsigned long long averageTime;
 
 	int i;
-	for (i = 0; i < runs; i++)
+	for (i = 0; i < iterations; i++)
 	{
 		clock_gettime(CLOCK_MONOTONIC, &start);
-		getpid();
+		pid = getpid();
 		clock_gettime(CLOCK_MONOTONIC, &stop);
 
 		// Use the function to get the difference between the two times
 		result=timespecDiff(&stop,&start);
+		printf("%llu\n",result );
 
-		totalTime += result;
+		totalTime = totalTime + result;
 	}
-	averageTime = totalTime/runs;
+	averageTime = totalTime/iterations;
 
-	printf("Average time for a system call using CLOCK_MONOTONIC for %llu cycles: %llu\n", runs, result);
+	printf("Average time for a system call using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", iterations, averageTime);
 }
