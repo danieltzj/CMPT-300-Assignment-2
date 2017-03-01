@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sched.h>
+#include <pthread.h>
 
 // Subtraction function taken from instructors sample code @ http://www.sfu.ca/~rws1/cmpt-300/assignments/hr-timer.c
 unsigned long long timespecDiff(struct timespec *timeA_p, struct timespec *timeB_p)
@@ -24,11 +25,13 @@ void func()
 
 int main()
 {
+	// Set the CPU Affinity to only use core 1
 	cpu_set_t  mask;
 	CPU_ZERO(&mask);
-	CPU_SET(0, &mask);
+	CPU_SET(1, &mask);
 	int result;
 	result = sched_setaffinity(0, sizeof(mask), &mask);
+
 	// 2 pipes for interprocess communication
 	// pipes[0] for parent process
 	// pipes[0][0] is the parents read end of the pipe
@@ -47,7 +50,7 @@ int main()
 	unsigned long long averageTime;
 	int status;
 
-	// Empty Function call time cost
+	//*************************************** Minimal Function Call ********************************************/
 	int i;
 	for (i = 0; i < runs; i++)
 	{
@@ -64,7 +67,7 @@ int main()
 
 	printf("Average time for a function call using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime);
 
-	// Minimal system call time taken
+	/***************************************** Minimal System Call *******************************************/
 	for (i = 0; i < runs; i++)
 	{
 		clock_gettime(CLOCK_MONOTONIC, &start);
@@ -75,14 +78,23 @@ int main()
 		timeTaken=timespecDiff(&stop,&start);
 
 		totalTime += timeTaken;
+
+		if (i == 0)
+		{
+			printf("The first run of getpid() took %llu ns\n",timeTaken );
+		}
+		else if (i == 1)
+		{
+			printf("consecutive runs of getpid() take about %llu ns\n",timeTaken );
+		}
 	}
 	averageTime = totalTime/runs;
 
 	printf("Average time for a system call using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime);
 
-	// Process switching cost
+	/********************************************* Process Switch ******************************************/
 	int k;
-	for ( k = 0; k < runs; k++)
+	for ( k = 0; k < runs/10; k++)
 	{
 		// create the two pipes
 		int i;
@@ -167,7 +179,11 @@ int main()
 
 		waitpid(pid, &status, WUNTRACED);
 	}
-	averageTime = totalTime/runs;
+	averageTime = totalTime/(runs/10);
 
 	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime);
+
+	/******************************************* Thread Switch **************************************************/
+	
+
 }
