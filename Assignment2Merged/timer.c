@@ -17,6 +17,11 @@ unsigned long long timespecDiff(struct timespec *timeA_p, struct timespec *timeB
            ((timeB_p->tv_sec * 1000000000) + timeB_p->tv_nsec);
 }
 
+void func()
+{
+
+}
+
 int main()
 {
 	cpu_set_t  mask;
@@ -51,30 +56,29 @@ int main()
 		clock_gettime(CLOCK_MONOTONIC, &stop);
 
 		// Use the function to get the difference between the two times
-		result=timespecDiff(&stop,&start);
+		timeTaken=timespecDiff(&stop,&start);
 
-		totalTime += result;
+		totalTime += timeTaken;
 	}
 	averageTime = totalTime / runs;
 
-	printf("Average time for a function call using CLOCK_MONOTONIC for %llu cycles: %llu\n", runs, result);
+	printf("Average time for a function call using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime);
 
 	// Minimal system call time taken
-	for (i = 0; i < iterations; i++)
+	for (i = 0; i < runs; i++)
 	{
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		pid = getpid();
 		clock_gettime(CLOCK_MONOTONIC, &stop);
 
 		// Use the function to get the difference between the two times
-		result=timespecDiff(&stop,&start);
-		printf("%llu\n",result );
+		timeTaken=timespecDiff(&stop,&start);
 
-		totalTime = totalTime + result;
+		totalTime += timeTaken;
 	}
-	averageTime = totalTime/iterations;
+	averageTime = totalTime/runs;
 
-	printf("Average time for a system call using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", iterations, averageTime);
+	printf("Average time for a system call using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime);
 
 	// Process switching cost
 	int k;
@@ -163,5 +167,7 @@ int main()
 
 		waitpid(pid, &status, WUNTRACED);
 	}
-	printf("%llu\n",totalTime/runs );
+	averageTime = totalTime/runs;
+
+	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime);
 }

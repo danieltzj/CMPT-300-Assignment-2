@@ -1,4 +1,4 @@
-CC=gcc ($CFLAGS)
+CC=gcc $(CFLAGS)
 CFLAGS= -lpthread
 
 all: timer
