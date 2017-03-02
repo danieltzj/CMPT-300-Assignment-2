@@ -23,6 +23,64 @@ void func()
 
 }
 
+// volatile variables that can be changed at any time, declared to use in the thread_funcs
+volatile int shared_num = 0;
+pthread_mutex_t lock;
+pthread_cond_t num_is_zero;
+pthread_cond_t num_is_one;
+struct timespec start;
+struct timespec stop;
+unsigned long long timeTaken; //64 bit integer
+unsigned long long totalTime = 0;
+unsigned long long averageTime;
+unsigned long long runs = 10;
+
+// Thread 1 func, checks if the lock is free and
+void *thread1_func()
+{
+	int i;
+	for(i = 0; i < runs; i++)
+	{
+		pthread_mutex_lock(&lock);
+		while( shared_num != 1)
+		{
+			clock_gettime(CLOCK_MONOTONIC, &start);
+			pthread_cond_wait(&num_is_one, &lock);
+		}
+		pthread_mutex_unlock(&lock);
+
+		pthread_mutex_lock(&lock);
+		shared_num = 0;
+		pthread_cond_signal(&num_is_zero);
+		pthread_mutex_unlock(&lock);
+	}
+	return;
+}
+
+void *thread2_func()
+{
+	int j;
+	for (j = 0;j < runs; j++)
+	{
+		clock_gettime(CLOCK_MONOTONIC, &stop);
+		timeTaken = timespecDiff(&stop,&start);
+		printf("%llu\n", timeTaken);
+		totalTime += timeTaken;
+		pthread_mutex_lock(&lock);
+		while( shared_num != 0)
+		{
+			pthread_cond_wait(&num_is_zero, &lock);
+		}
+		pthread_mutex_unlock(&lock);
+
+		pthread_mutex_lock(&lock);
+		shared_num = 0;
+		pthread_cond_signal(&num_is_one);
+		pthread_mutex_unlock(&lock);
+	}
+	return;
+}
+
 int main()
 {
 	// Set the CPU Affinity to only use core 1
@@ -42,12 +100,6 @@ int main()
 	int pipes[2][2];
 	pid_t pid, pidp; // child process pid
 	int num = 100;
-	struct timespec start;
-	struct timespec stop;
-	unsigned long long runs = 1000000;
-	unsigned long long timeTaken; //64 bit integer
-	unsigned long long totalTime = 0;
-	unsigned long long averageTime;
 	int status;
 
 	//*************************************** Minimal Function Call ********************************************/
@@ -94,7 +146,7 @@ int main()
 
 	/********************************************* Process Switch ******************************************/
 	int k;
-	for ( k = 0; k < runs/10; k++)
+	for ( k = 0; k < runs; k++)
 	{
 		// create the two pipes
 		int i;
@@ -161,7 +213,8 @@ int main()
 		}
 
 		int successParent;
-		// get the time before you read the read starts it will be read blocked
+		// get the time before you read when the read starts it will be read blocked
+		// This is because the buffer at the write end of the pipe is empty, so the parent process will sleep
 		clock_gettime(CLOCK_MONOTONIC,&start);
 		// process will be read blocked.
 		successParent = read(pipes[0][0], &stop, sizeof(stop));
@@ -177,13 +230,34 @@ int main()
 		close(pipes[0][0]); // close "parents" read end
 		close(pipes[1][1]); // close "parents" write end
 
+		//wait for the child process to finish.
 		waitpid(pid, &status, WUNTRACED);
 	}
-	averageTime = totalTime/(runs/10);
+	averageTime = totalTime/(runs);
 
 	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime);
 
 	/******************************************* Thread Switch **************************************************/
 	
+	int thread_result1, thread_result2;
 
+	pthread_t thread1, thread2;
+
+	// Code referenced from sample provided by the prof @
+	// http://199.60.17.135/cmpt-300/wp-content/uploads/2016/09/lock-example.c
+	if (thread_result1 = pthread_create( &thread1, NULL, &thread1_func, NULL))
+	{
+		printf("Thread creation failed: %d\n", thread_result1);
+	}
+	if (thread_result2 = pthread_create( &thread2, NULL, &thread2_func, NULL))
+	{
+		printf("Thread creation failed: %d\n", thread_result2);
+	}
+
+	pthread_join(thread1, NULL);
+	pthread_join(thread2, NULL);
+
+	averageTime = totalTime/runs;
+
+	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime );
 }

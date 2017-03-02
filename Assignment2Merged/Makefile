@@ -1,5 +1,5 @@
 CC=gcc $(CFLAGS)
-CFLAGS= -lpthread
+CFLAGS= -lpthread -pthread
 
 all: timer
 program: timer.o
