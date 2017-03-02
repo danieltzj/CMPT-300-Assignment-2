@@ -33,51 +33,41 @@ struct timespec stop_t;
 unsigned long long timeTaken_t; //64 bit integer
 unsigned long long totalTime_t = 0;
 unsigned long long averageTime_t;
-unsigned long long runs_t = 10;
 
 // Thread 1 func, checks if the lock is free and
 void *thread1_func()
 {
-	int i;
-	for(i = 0; i < runs_t; i++)
+	pthread_mutex_lock(&lock);
+	while( shared_num != 1)
 	{
-		pthread_mutex_lock(&lock);
-		while( shared_num != 1)
-		{
-			clock_gettime(CLOCK_MONOTONIC, &start_t);
-			pthread_cond_wait(&num_is_one, &lock);
-		}
-		clock_gettime(CLOCK_MONOTONIC, &stop_t);
-		timeTaken_t = timespecDiff(&stop_t,&start_t);
-		timeTaken_t = timeTaken_t/2;
-		printf("%llu\n", timeTaken_t);
-		totalTime_t += timeTaken_t;
-		pthread_mutex_unlock(&lock);
-
-		pthread_mutex_lock(&lock);
-		shared_num = 0;
-		pthread_cond_signal(&num_is_zero);
-		pthread_mutex_unlock(&lock);
+		pthread_cond_wait(&num_is_one, &lock);
 	}
+	clock_gettime(CLOCK_MONOTONIC, &stop_t);
+	timeTaken_t = timespecDiff(&stop_t,&start_t);
+	totalTime_t += timeTaken_t;
+	pthread_mutex_unlock(&lock);
+
+	pthread_mutex_lock(&lock);
+	shared_num = 0;
+	pthread_cond_signal(&num_is_zero);
+	pthread_mutex_unlock(&lock);
+	
 }
 
 void *thread2_func()
 {
-	int j;
-	for (j = 0;j < runs_t; j++)
+	pthread_mutex_lock(&lock);
+	while( shared_num != 0)
 	{
-		pthread_mutex_lock(&lock);
-		while( shared_num != 0)
-		{
-			pthread_cond_wait(&num_is_zero, &lock);
-		}
-		pthread_mutex_unlock(&lock);
-
-		pthread_mutex_lock(&lock);
-		shared_num = 1;
-		pthread_cond_signal(&num_is_one);
-		pthread_mutex_unlock(&lock);
+		pthread_cond_wait(&num_is_zero, &lock);
 	}
+	pthread_mutex_unlock(&lock);
+
+	pthread_mutex_lock(&lock);
+	shared_num = 1;
+	pthread_cond_signal(&num_is_one);
+	pthread_mutex_unlock(&lock);
+	clock_gettime(CLOCK_MONOTONIC, &start_t);
 }
 
 int main()
@@ -244,25 +234,28 @@ int main()
 
 	/******************************************* Thread Switch **************************************************/
 	
-	int thread_result1, thread_result2;
-
-	pthread_t thread1, thread2;
-
-	// Code referenced from sample provided by the prof @
-	// http://199.60.17.135/cmpt-300/wp-content/uploads/2016/09/lock-example.c
-	if (thread_result1 = pthread_create( &thread1, NULL, &thread1_func, NULL))
+	for (i = 0; i < runs; i++)
 	{
-		printf("Thread creation failed: %d\n", thread_result1);
+		int thread_result1, thread_result2;
+
+		pthread_t thread1, thread2;
+
+		// Code referenced from sample provided by the prof @
+		// http://199.60.17.135/cmpt-300/wp-content/uploads/2016/09/lock-example.c
+		if (thread_result1 = pthread_create( &thread1, NULL, &thread1_func, NULL))
+		{
+			printf("Thread creation failed: %d\n", thread_result1);
+		}
+		if (thread_result2 = pthread_create( &thread2, NULL, &thread2_func, NULL))
+		{
+			printf("Thread creation failed: %d\n", thread_result2);
+		}
+
+		pthread_join(thread1, NULL);
+		pthread_join(thread2, NULL);
 	}
-	if (thread_result2 = pthread_create( &thread2, NULL, &thread2_func, NULL))
-	{
-		printf("Thread creation failed: %d\n", thread_result2);
-	}
 
-	pthread_join(thread1, NULL);
-	pthread_join(thread2, NULL);
+	averageTime = totalTime_t/runs;
 
-	averageTime = totalTime_t/runs_t;
-
-	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs_t, averageTime );
+	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime );
 }
