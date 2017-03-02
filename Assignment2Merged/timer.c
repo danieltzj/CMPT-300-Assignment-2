@@ -28,25 +28,30 @@ volatile int shared_num = 0;
 pthread_mutex_t lock;
 pthread_cond_t num_is_zero;
 pthread_cond_t num_is_one;
-struct timespec start;
-struct timespec stop;
-unsigned long long timeTaken; //64 bit integer
-unsigned long long totalTime = 0;
-unsigned long long averageTime;
-unsigned long long runs = 10;
+struct timespec start_t;
+struct timespec stop_t;
+unsigned long long timeTaken_t; //64 bit integer
+unsigned long long totalTime_t = 0;
+unsigned long long averageTime_t;
+unsigned long long runs_t = 10;
 
 // Thread 1 func, checks if the lock is free and
 void *thread1_func()
 {
 	int i;
-	for(i = 0; i < runs; i++)
+	for(i = 0; i < runs_t; i++)
 	{
 		pthread_mutex_lock(&lock);
 		while( shared_num != 1)
 		{
-			clock_gettime(CLOCK_MONOTONIC, &start);
+			clock_gettime(CLOCK_MONOTONIC, &start_t);
 			pthread_cond_wait(&num_is_one, &lock);
 		}
+		clock_gettime(CLOCK_MONOTONIC, &stop_t);
+		timeTaken_t = timespecDiff(&stop_t,&start_t);
+		timeTaken_t = timeTaken_t/2;
+		printf("%llu\n", timeTaken_t);
+		totalTime_t += timeTaken_t;
 		pthread_mutex_unlock(&lock);
 
 		pthread_mutex_lock(&lock);
@@ -54,18 +59,13 @@ void *thread1_func()
 		pthread_cond_signal(&num_is_zero);
 		pthread_mutex_unlock(&lock);
 	}
-	return;
 }
 
 void *thread2_func()
 {
 	int j;
-	for (j = 0;j < runs; j++)
+	for (j = 0;j < runs_t; j++)
 	{
-		clock_gettime(CLOCK_MONOTONIC, &stop);
-		timeTaken = timespecDiff(&stop,&start);
-		printf("%llu\n", timeTaken);
-		totalTime += timeTaken;
 		pthread_mutex_lock(&lock);
 		while( shared_num != 0)
 		{
@@ -74,11 +74,10 @@ void *thread2_func()
 		pthread_mutex_unlock(&lock);
 
 		pthread_mutex_lock(&lock);
-		shared_num = 0;
+		shared_num = 1;
 		pthread_cond_signal(&num_is_one);
 		pthread_mutex_unlock(&lock);
 	}
-	return;
 }
 
 int main()
@@ -101,6 +100,12 @@ int main()
 	pid_t pid, pidp; // child process pid
 	int num = 100;
 	int status;
+	struct timespec start;
+	struct timespec stop;
+	unsigned long long timeTaken; //64 bit integer
+	unsigned long long totalTime = 0;
+	unsigned long long averageTime;
+	unsigned long long runs = 1000000;
 
 	//*************************************** Minimal Function Call ********************************************/
 	int i;
@@ -257,7 +262,7 @@ int main()
 	pthread_join(thread1, NULL);
 	pthread_join(thread2, NULL);
 
-	averageTime = totalTime/runs;
+	averageTime = totalTime_t/runs_t;
 
-	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime );
+	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs_t, averageTime );
 }
