@@ -45,7 +45,7 @@ int main()
 	printf("CLOCK_MONOTONIC Measured: %llu\n",result);
 
 	// Same thing as above but using CLOCK_PROCESS_CPUTIME_ID
-	// this measures how much time a process is using regardless of context switches
+	// this measures how much time a process is using regardless of context switches, good for measuring how much time a specific process is taking on the cpu
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
 	sleep(1);
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &stop);
@@ -56,7 +56,7 @@ int main()
 	printf("CLOCK_PROCESS_CPUTIME_ID Measured: %llu\n",result);
 
 	// Similar to the above clock except with threads
-	// it will time how much a thread took on the cpu regardless of switches or preemption
+	// it will time how much a thread took on the cpu regardless of switches or preemption, good for measuring time a specific thread is taking on the cpu
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
 	sleep(1);
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &stop);
