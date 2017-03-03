@@ -1,5 +1,5 @@
 CC = gcc $(CFLAGS)
-CFLAGS = -lpthread
+CFLAGS = -lpthread -pthread
 
 all: hr-timer functionCall systemCall processSwitch threadSwitch
 program: hr-timer.o functionCall.o systemCall.o processSwitch.o threadSwitch.o

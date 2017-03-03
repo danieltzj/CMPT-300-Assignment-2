@@ -36,47 +36,13 @@ int main()
 	int num = 100;
 	struct timespec start;
 	struct timespec stop;
-	unsigned long long runs = 1000000;
+	unsigned long long runs = 10000;
 	unsigned long long timeTaken; //64 bit integer
 	unsigned long long totalTime = 0;
 	unsigned long long averageTime;
 	int status;
 
-	// Empty Function call time cost
-	int i;
-	for (i = 0; i < runs; i++)
-	{
-		clock_gettime(CLOCK_MONOTONIC, &start);
-		func();
-		clock_gettime(CLOCK_MONOTONIC, &stop);
-
-		// Use the function to get the difference between the two times
-		result=timespecDiff(&stop,&start);
-
-		totalTime += result;
-	}
-	averageTime = totalTime / runs;
-
-	printf("Average time for a function call using CLOCK_MONOTONIC for %llu cycles: %llu\n", runs, result);
-
-	// Minimal system call time taken
-	for (i = 0; i < iterations; i++)
-	{
-		clock_gettime(CLOCK_MONOTONIC, &start);
-		pid = getpid();
-		clock_gettime(CLOCK_MONOTONIC, &stop);
-
-		// Use the function to get the difference between the two times
-		result=timespecDiff(&stop,&start);
-		printf("%llu\n",result );
-
-		totalTime = totalTime + result;
-	}
-	averageTime = totalTime/iterations;
-
-	printf("Average time for a system call using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", iterations, averageTime);
-
-	// Process switching cost
+	/********************************************* Process Switch ******************************************/
 	int k;
 	for ( k = 0; k < runs; k++)
 	{
@@ -92,6 +58,7 @@ int main()
 		}
 
 		pid = fork();
+		clock_gettime(CLOCK_MONOTONIC, &stop);
 		if (pid < 0)
 		{
 			fprintf(stderr, "Fork Failed");
@@ -101,7 +68,7 @@ int main()
 		{
 			// Child Process code here
 			// Stop the timer once the child process starts running
-			clock_gettime(CLOCK_MONOTONIC, &stop);
+			//clock_gettime(CLOCK_MONOTONIC, &stop);
 
 			// close pipes that aren't in use ( "parent" ends of the pipes)
 			close(pipes[0][0]); // close "parents" read end
@@ -145,7 +112,8 @@ int main()
 		}
 
 		int successParent;
-		// get the time before you read the read starts it will be read blocked
+		// get the time before you read when the read starts it will be read blocked
+		// This is because the buffer at the write end of the pipe is empty, so the parent process will sleep
 		clock_gettime(CLOCK_MONOTONIC,&start);
 		// process will be read blocked.
 		successParent = read(pipes[0][0], &stop, sizeof(stop));
@@ -161,7 +129,10 @@ int main()
 		close(pipes[0][0]); // close "parents" read end
 		close(pipes[1][1]); // close "parents" write end
 
+		//wait for the child process to finish.
 		waitpid(pid, &status, WUNTRACED);
 	}
-	printf("%llu\n",totalTime/runs );
+	averageTime = totalTime/(runs);
+
+	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime);
 }

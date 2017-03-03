@@ -110,7 +110,7 @@ int main()
 	unsigned long long timeTaken; //64 bit integer
 	unsigned long long totalTime = 0;
 	unsigned long long averageTime;
-	unsigned long long runs = 1000000;
+	unsigned long long runs = 10000;
 
 	//*************************************** Minimal Function Call ********************************************/
 	int i;
@@ -170,6 +170,7 @@ int main()
 		}
 
 		pid = fork();
+		clock_gettime(CLOCK_MONOTONIC, &stop);
 		if (pid < 0)
 		{
 			fprintf(stderr, "Fork Failed");
@@ -179,7 +180,7 @@ int main()
 		{
 			// Child Process code here
 			// Stop the timer once the child process starts running
-			clock_gettime(CLOCK_MONOTONIC, &stop);
+			//clock_gettime(CLOCK_MONOTONIC, &stop);
 
 			// close pipes that aren't in use ( "parent" ends of the pipes)
 			close(pipes[0][0]); // close "parents" read end
