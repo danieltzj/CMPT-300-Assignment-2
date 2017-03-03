@@ -89,7 +89,7 @@ int main()
 	int res;
 	res = sched_setaffinity(0, sizeof(mask), &mask);
 
-	unsigned long long runs = 100;
+	unsigned long long runs = 1000;
 	struct timespec start;
 	struct timespec stop;
 	unsigned long long result; //64 bit integer
