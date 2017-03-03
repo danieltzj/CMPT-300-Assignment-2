@@ -32,6 +32,9 @@ unsigned long long averageTime_t;
 // Thread 1 func, checks if the lock is free and
 void *thread1_func()
 {
+	clock_gettime(CLOCK_MONOTONIC, &stop_t);
+	timeTaken_t = timespecDiff(&stop_t,&start_t);
+	totalTime_t += timeTaken_t;
 	// wait for the shared_num to become 1 before executing
 	pthread_mutex_lock(&lock);
 	while( shared_num != 1)
@@ -41,9 +44,6 @@ void *thread1_func()
 	}
 	// get the stop time here since this means that the shared_num is one and we can change it back to 0 now
 	// do not need to use IPC to access the start time since threads share global variables
-	clock_gettime(CLOCK_MONOTONIC, &stop_t);
-	timeTaken_t = timespecDiff(&stop_t,&start_t);
-	totalTime_t += timeTaken_t;
 	pthread_mutex_unlock(&lock);
 
 	// shared_num is 1, change it back to 0

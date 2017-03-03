@@ -111,6 +111,11 @@ int main()
 	unsigned long long totalTime = 0;
 	unsigned long long averageTime;
 	unsigned long long runs = 1000000;
+	unsigned long long runsPT = 100000;
+	FILE *f1 = fopen("functionCallTime.txt", "w");
+	FILE *f2 = fopen("systemCallTime.txt", "w");
+	FILE *f3 = fopen("processSwitchTime.txt", "w");
+	FILE *f4 = fopen("threadSwitchTime.txt", "w");
 
 	//*************************************** Minimal Function Call ********************************************/
 	int i;
@@ -123,11 +128,15 @@ int main()
 		// Use the function to get the difference between the two times
 		timeTaken=timespecDiff(&stop,&start);
 
+		fprintf(f1, "%llu\n", timeTaken);
+
 		totalTime += timeTaken;
 	}
 	averageTime = totalTime / runs;
 
 	printf("Average time for a function call using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime);
+
+	fclose(f1);
 
 	/***************************************** Minimal System Call *******************************************/
 	for (i = 0; i < runs; i++)
@@ -138,6 +147,8 @@ int main()
 
 		// Use the function to get the difference between the two times
 		timeTaken=timespecDiff(&stop,&start);
+
+		fprintf(f2, "%llu\n", timeTaken);
 
 		totalTime += timeTaken;
 
@@ -154,9 +165,11 @@ int main()
 
 	printf("Average time for a system call using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime);
 
+	fclose(f2);
+
 	/********************************************* Process Switch ******************************************/
 	int k;
-	for ( k = 0; k < runs; k++)
+	for ( k = 0; k < runsPT; k++)
 	{
 		// create the two pipes
 		int i;
@@ -236,19 +249,22 @@ int main()
 		timeTaken=timespecDiff(&stop,&start);
 		totalTime += timeTaken;
 
+		fprintf(f3, "%llu\n", timeTaken);
+
 		close(pipes[0][0]); // close "parents" read end
 		close(pipes[1][1]); // close "parents" write end
 
 		//wait for the child process to finish.
 		waitpid(pid, &status, WUNTRACED);
 	}
-	averageTime = totalTime/(runs);
+	averageTime = totalTime/(runsPT);
 
-	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime);
+	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runsPT, averageTime);
 
+	fclose(f3);
 	/******************************************* Thread Switch **************************************************/
 	
-	for (i = 0; i < runs; i++)
+	for (i = 0; i < runsPT; i++)
 	{
 		int thread_result1, thread_result2;
 
@@ -271,9 +287,13 @@ int main()
 		// wait for the threads to finish executing
 		pthread_join(thread1, NULL);
 		pthread_join(thread2, NULL);
+
+		fprintf(f4, "%llu\n", timeTaken_t);
 	}
 
-	averageTime = totalTime_t/runs;
+	averageTime = totalTime_t/runsPT;
 
-	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime );
+	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runsPT, averageTime );
+
+	fclose(f4);
 }
