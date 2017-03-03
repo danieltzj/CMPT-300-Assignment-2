@@ -19,6 +19,7 @@ int main()
 	unsigned long long result; //64 bit integer
 	unsigned long long totalTime = 0;
 	unsigned long long averageTime;
+	FILE *f = fopen("systemCallTime.txt", "w");
 
 	int i;
 	for (i = 0; i < iterations; i++)
@@ -29,11 +30,13 @@ int main()
 
 		// Use the function to get the difference between the two times
 		result=timespecDiff(&stop,&start);
-		printf("%llu\n",result );
+		fprintf(f, "%llu\n",result );
 
 		totalTime = totalTime + result;
 	}
 	averageTime = totalTime/iterations;
 
 	printf("Average time for a system call using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", iterations, averageTime);
+
+	fclose(f);
 }

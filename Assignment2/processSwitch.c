@@ -41,6 +41,7 @@ int main()
 	unsigned long long totalTime = 0;
 	unsigned long long averageTime;
 	int status;
+	FILE *f = fopen("processSwitchTime.txt", "w");
 
 	/********************************************* Process Switch ******************************************/
 	int k;
@@ -122,7 +123,7 @@ int main()
 		}
 		// Do the subtraction with the value received from the child
 		timeTaken=timespecDiff(&stop,&start);
-		printf("%llu\n", timeTaken);
+		fprintf(f, "%llu\n", timeTaken);
 		totalTime += timeTaken;
 
 		close(pipes[0][0]); // close "parents" read end
@@ -134,4 +135,6 @@ int main()
 	averageTime = totalTime/(runs);
 
 	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime);
+
+	fclose(f);
 }

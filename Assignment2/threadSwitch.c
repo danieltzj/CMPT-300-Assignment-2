@@ -43,7 +43,6 @@ void *thread1_func()
 	// do not need to use IPC to access the start time since threads share global variables
 	clock_gettime(CLOCK_MONOTONIC, &stop_t);
 	timeTaken_t = timespecDiff(&stop_t,&start_t);
-	printf("%llu\n", timeTaken_t);
 	totalTime_t += timeTaken_t;
 	pthread_mutex_unlock(&lock);
 
@@ -96,6 +95,7 @@ int main()
 	unsigned long long result; //64 bit integer
 	unsigned long long totalTime = 0;
 	unsigned long long averageTime;
+	FILE *f = fopen("threadSwitchTime.txt", "w");
 
 	/******************************************* Thread Switch **************************************************/
 	int i;
@@ -122,9 +122,13 @@ int main()
 		// wait for the threads to finish executing
 		pthread_join(thread1, NULL);
 		pthread_join(thread2, NULL);
+
+		fprintf(f, "%llu\n", timeTaken_t);
 	}
 
 	averageTime = totalTime_t/runs;
 
 	printf("Average time for a process switch using CLOCK_MONOTONIC for %llu cycles: %llu ns\n", runs, averageTime );
+
+	fclose(f);
 }

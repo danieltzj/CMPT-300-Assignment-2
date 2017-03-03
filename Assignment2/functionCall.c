@@ -22,6 +22,7 @@ int main()
 	unsigned long long result; //64 bit integer
 	unsigned long long totalTime = 0;
 	unsigned long long averageTime;
+	FILE *f = fopen("functionCallTime.txt", "w");
 
 	int i;
 	for (i = 0; i < runs; i++)
@@ -32,11 +33,13 @@ int main()
 
 		// Use the function to get the difference between the two times
 		result=timespecDiff(&stop,&start);
-		printf("%llu\n",result );
+		fprintf(f, "%llu\n",result );
 
 		totalTime += result;
 	}
 	averageTime = totalTime / runs;
 
 	printf("Average time for a function call using CLOCK_MONOTONIC for %llu cycles: %llu\n", runs, result);
+
+	fclose(f);
 }
