@@ -16,7 +16,7 @@ void func()
 
 int main()
 {
-	unsigned long long runs = 100;
+	unsigned long long runs = 1000;
 	struct timespec start;
 	struct timespec stop;
 	unsigned long long result; //64 bit integer

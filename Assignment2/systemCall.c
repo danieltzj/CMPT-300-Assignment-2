@@ -12,7 +12,7 @@ unsigned long long timespecDiff(struct timespec *timeA_p, struct timespec *timeB
 
 int main()
 {
-	unsigned long long iterations = 100;
+	unsigned long long iterations = 1000;
 	pid_t pid;
 	struct timespec start;
 	struct timespec stop;

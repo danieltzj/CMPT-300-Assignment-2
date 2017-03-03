@@ -36,7 +36,7 @@ int main()
 	int num = 100;
 	struct timespec start;
 	struct timespec stop;
-	unsigned long long runs = 100;
+	unsigned long long runs = 1000;
 	unsigned long long timeTaken; //64 bit integer
 	unsigned long long totalTime = 0;
 	unsigned long long averageTime;
