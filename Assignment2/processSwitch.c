@@ -36,7 +36,7 @@ int main()
 	int num = 100;
 	struct timespec start;
 	struct timespec stop;
-	unsigned long long runs = 10000;
+	unsigned long long runs = 100;
 	unsigned long long timeTaken; //64 bit integer
 	unsigned long long totalTime = 0;
 	unsigned long long averageTime;
@@ -67,8 +67,6 @@ int main()
 		else if (pid == 0)
 		{
 			// Child Process code here
-			// Stop the timer once the child process starts running
-			//clock_gettime(CLOCK_MONOTONIC, &stop);
 
 			// close pipes that aren't in use ( "parent" ends of the pipes)
 			close(pipes[0][0]); // close "parents" read end
@@ -84,8 +82,10 @@ int main()
 			}
 			else
 			{
+				// start the timer before the write as once the write executes it will switch to the parent to read the value because the buffer has something now
+				clock_gettime(CLOCK_MONOTONIC,&start);
 				// write the stop time back to the parent process so the parent has the stop value
-				if (write(pipes[0][1], &stop, sizeof(stop)) == -1)
+				if (write(pipes[0][1], &start, sizeof(start)) == -1)
 				{
 					printf("Child process failed to write data to the pipe\n");
 					exit(0);
@@ -112,11 +112,9 @@ int main()
 		}
 
 		int successParent;
-		// get the time before you read when the read starts it will be read blocked
-		// This is because the buffer at the write end of the pipe is empty, so the parent process will sleep
-		clock_gettime(CLOCK_MONOTONIC,&start);
-		// process will be read blocked.
-		successParent = read(pipes[0][0], &stop, sizeof(stop));
+		successParent = read(pipes[0][0], &start, sizeof(start));
+		// get  the time right after the read because when the child writes the parent will instantly read from the pipe
+		clock_gettime(CLOCK_MONOTONIC, &stop);
 		if (successParent == -1) 
 		{
 			printf("Parent process failed to read data from the pipe\n");
@@ -124,6 +122,7 @@ int main()
 		}
 		// Do the subtraction with the value received from the child
 		timeTaken=timespecDiff(&stop,&start);
+		printf("%llu\n", timeTaken);
 		totalTime += timeTaken;
 
 		close(pipes[0][0]); // close "parents" read end

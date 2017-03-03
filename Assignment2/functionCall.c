@@ -16,7 +16,7 @@ void func()
 
 int main()
 {
-	unsigned long long runs = 100000;
+	unsigned long long runs = 100;
 	struct timespec start;
 	struct timespec stop;
 	unsigned long long result; //64 bit integer
@@ -32,6 +32,7 @@ int main()
 
 		// Use the function to get the difference between the two times
 		result=timespecDiff(&stop,&start);
+		printf("%llu\n",result );
 
 		totalTime += result;
 	}

@@ -110,7 +110,7 @@ int main()
 	unsigned long long timeTaken; //64 bit integer
 	unsigned long long totalTime = 0;
 	unsigned long long averageTime;
-	unsigned long long runs = 10000;
+	unsigned long long runs = 1000000;
 
 	//*************************************** Minimal Function Call ********************************************/
 	int i;
@@ -141,14 +141,14 @@ int main()
 
 		totalTime += timeTaken;
 
-		if (i == 0)
+		/*if (i == 0)
 		{
 			printf("The first run of getpid() took %llu ns\n",timeTaken );
 		}
 		else if (i == 1)
 		{
 			printf("consecutive runs of getpid() take about %llu ns\n",timeTaken );
-		}
+		}*/
 	}
 	averageTime = totalTime/runs;
 

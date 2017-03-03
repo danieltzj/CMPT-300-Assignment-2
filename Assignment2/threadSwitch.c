@@ -43,6 +43,7 @@ void *thread1_func()
 	// do not need to use IPC to access the start time since threads share global variables
 	clock_gettime(CLOCK_MONOTONIC, &stop_t);
 	timeTaken_t = timespecDiff(&stop_t,&start_t);
+	printf("%llu\n", timeTaken_t);
 	totalTime_t += timeTaken_t;
 	pthread_mutex_unlock(&lock);
 
@@ -89,7 +90,7 @@ int main()
 	int res;
 	res = sched_setaffinity(0, sizeof(mask), &mask);
 
-	unsigned long long runs = 100000;
+	unsigned long long runs = 100;
 	struct timespec start;
 	struct timespec stop;
 	unsigned long long result; //64 bit integer
