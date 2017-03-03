@@ -110,8 +110,8 @@ int main()
 	unsigned long long timeTaken; //64 bit integer
 	unsigned long long totalTime = 0;
 	unsigned long long averageTime;
-	unsigned long long runs = 1000000;
-	unsigned long long runsPT = 100000;
+	unsigned long long runs = 1000;
+	unsigned long long runsPT = 1000;
 	FILE *f1 = fopen("functionCallTime.txt", "w");
 	FILE *f2 = fopen("systemCallTime.txt", "w");
 	FILE *f3 = fopen("processSwitchTime.txt", "w");
