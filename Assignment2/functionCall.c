@@ -22,6 +22,7 @@ int main()
 	unsigned long long result; //64 bit integer
 	unsigned long long totalTime = 0;
 	unsigned long long averageTime;
+	// Open a file to write data to
 	FILE *f = fopen("functionCallTime.txt", "w");
 
 	int i;

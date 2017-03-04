@@ -85,7 +85,7 @@ int main()
 			{
 				// start the timer before the write as once the write executes it will switch to the parent to read the value because the buffer has something now
 				clock_gettime(CLOCK_MONOTONIC,&start);
-				// write the stop time back to the parent process so the parent has the stop value
+				// write the start time back to the parent process so the parent has the start value
 				if (write(pipes[0][1], &start, sizeof(start)) == -1)
 				{
 					printf("Child process failed to write data to the pipe\n");
@@ -121,7 +121,7 @@ int main()
 			printf("Parent process failed to read data from the pipe\n");
 			exit(0);
 		}
-		// Do the subtraction with the value received from the child
+		// Do the subtraction with the start time value received from the child
 		timeTaken=timespecDiff(&stop,&start);
 		fprintf(f, "%llu\n", timeTaken);
 		totalTime += timeTaken;
