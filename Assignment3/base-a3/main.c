@@ -1,5 +1,7 @@
 #include "main.h"
 
+#define DELIMITERS " \t\n"
+#define MAX_BUFFER 512
 
 void *fnC()
 {
@@ -12,7 +14,34 @@ void *fnC()
 
 
 pthread_mutex_t count_mutex;
+pthread_spinlock_t spinlock;
 
+void *pthreadSpinklockTest()
+{
+	
+    int i;
+	int j;
+	int k;
+	
+	int localCount = 0;
+	
+    for(i=0;i<numItterations;i++)
+    {
+		
+		for(j=0;j<workOutsideCS;j++)/*How much work is done outside the CS*/
+		{
+			localCount++;
+		}
+		
+		pthread_spin_lock(&spinlock);
+		for(k=0;k<workInsideCS;k++)/*How much work is done inside the CS*/
+		{
+			c++;
+		}
+		pthread_spin_unlock(&spinlock);    
+	
+    }   
+}
 
 void *pthreadMutexTest()
 {
@@ -86,6 +115,36 @@ if (testID == 0 || testID == 1 ) /*Pthread Mutex*/
 if(testID == 0 || testID == 2) /*Pthread Spinlock*/
 {
 /*Pthread Spinlock goes here*/
+	c=0;
+	struct timespec start;
+	struct timespec stop;
+	unsigned long long result; //64 bit integer
+
+	pthread_t *threads = (pthread_t* )malloc(sizeof(pthread_t)*numThreads);	
+	int i;
+	int rt;
+
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	for(i=0;i<numThreads;i++)
+	{
+	
+	 if( rt=(pthread_create( threads+i, NULL, &pthreadSpinklockTest, NULL)) )
+	{
+		printf("Thread creation failed: %d\n", rt);
+		return -1;	
+	}
+	
+	}
+	
+	for(i=0;i<numThreads;i++) //Wait for all threads to finish
+	{
+		 pthread_join(threads[i], NULL);
+	}
+	clock_gettime(CLOCK_MONOTONIC, &stop);
+
+	printf("Threaded Run Pthread (Mutex) Total Count: %d\n", c);
+	result=timespecDiff(&stop,&start);
+	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
 }
 
 if(testID == 0 || testID == 3) /*MySpinlockTAS*/
@@ -100,10 +159,10 @@ if(testID == 0 || testID == 3) /*MySpinlockTAS*/
 
 int testAndSetExample()
 {
-volatile long test = 0; //Test is set to 0
-printf("Test before atomic OP:%d\n",test);
-tas(&test);
-printf("Test after atomic OP:%d\n",test);
+	volatile long test = 0; //Test is set to 0
+	printf("Test before atomic OP:%d\n",test);
+	tas(&test);
+	printf("Test after atomic OP:%d\n",test);
 }
 
 int processInput(int argc, char *argv[])
@@ -111,14 +170,81 @@ int processInput(int argc, char *argv[])
 
 /*testid: 0=all, 1=pthreadMutex, 2=pthreadSpinlock, 3=mySpinLockTAS, 4=mySpinLockTTAS, 5=myMutexTAS, 6=myQueueLock*/
 	/*You must write how to parse input from the command line here, your software should default to the values given below if no input is given*/
-	
+
 	numThreads=4;
 	numItterations=1000000;
 	testID=0;
 	workOutsideCS=0;
 	workInsideCS=1;
-	
-	
+
+	char commandArg[MAX_BUFFER];
+	int default_values = 0;
+
+	fgets (commandArg,MAX_BUFFER,stdin);
+
+	// remove the new line character at the end and replace it with a null terminate
+	size_t length = strlen(commandArg);
+	if (commandArg[length - 1] == '\n')
+	{
+		commandArg[length - 1] = '\0';
+	}
+
+	int i = 0;
+	argv[i] = strtok(commandArg, DELIMITERS);
+	if (argv[i] == NULL)
+	{
+		default_values = 1;
+	}
+	else
+	{
+		while (argv[i+1] = strtok(NULL, DELIMITERS))
+		{
+			i++;
+		}
+	}
+
+	if (default_values)
+	{
+		numThreads=4;
+		numItterations=1000000;
+		testID=0;
+		workOutsideCS=0;
+		workInsideCS=1;
+	}
+	else
+	{
+		int max_arg = i;
+		i = 0;
+		if (max_arg % 2 != 1)
+		{
+			printf("odd number of inputs, please restart the program and enter the correct inputs\n");
+			exit(0);
+		}
+		while (i < max_arg)
+		{
+			if (!strcmp(argv[i], "-t"))
+			{
+				numThreads = atoi(argv[i+1]);
+			}
+			else if (!strcmp(argv[i], "-i"))
+			{
+				numItterations = atoi(argv[i+1]);
+			}
+			else if (!strcmp(argv[i], "-o"))
+			{
+				workOutsideCS = atoi(argv[i+1]);
+			}
+			else if (!strcmp(argv[i], "-c"))
+			{
+				workInsideCS = atoi(argv[i+1]);
+			}
+			else if (!strcmp(argv[i], "-d"))
+			{
+				testID = atoi(argv[i+1]);
+			}
+			i = i + 2;
+		}
+	}
 	return 0;
 }
 

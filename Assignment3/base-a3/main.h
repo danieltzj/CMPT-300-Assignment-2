@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <stdint.h>
 #include <time.h>
+#include <string.h>
 #include "sync.h"
 
 long long c = 0;
@@ -12,6 +13,7 @@ int workOutsideCS;
 int workInsideCS;
 int testID;
 pthread_mutex_t count_mutex;
+pthread_spinlock_t spinlock;
 
 
 unsigned long long timespecDiff(struct timespec *timeA_p, struct timespec *timeB_p)

@@ -11,11 +11,8 @@
 #include "atomic_ops.h"
 
 struct my_mutex_struct {
-  /* FILL ME IN! */
+  volatile long lock_value;
 };
-
-
-
 
 typedef struct my_mutex_struct my_mutex_t;
 
@@ -32,7 +29,7 @@ int my_mutex_trylock(my_mutex_t *lock);
 /*Spinlock Starts here*/
 
 struct my_spinlock_struct {
-  /* FILL ME IN! */
+  volatile long lock_value;
 };
 
 typedef struct my_spinlock_struct my_spinlock_t;
@@ -50,6 +47,9 @@ int my_spinlock_trylock(my_spinlock_t *lock);
 
 struct my_queuelock_struct {
   /* FILL ME IN! */
+	volatile long lock_value;
+	long now_serving;
+	long next_ticket;
 };
 
 typedef struct my_queuelock_struct my_queuelock_t;
