@@ -149,7 +149,138 @@ if(testID == 0 || testID == 2) /*Pthread Spinlock*/
 
 if(testID == 0 || testID == 3) /*MySpinlockTAS*/
 {
-/* mySpinlock TAS goes here*/
+	c=0;
+	struct timespec start;
+	struct timespec stop;
+	unsigned long long result; //64 bit integer
+
+	pthread_t *threads = (pthread_t* )malloc(sizeof(pthread_t)*numThreads);	
+	int i;
+	int rt;
+
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	for(i=0;i<numThreads;i++)
+	{
+	
+	 if( rt=(pthread_create( threads+i, NULL, &pthreadSpinklockTest, NULL)) )
+	{
+		printf("Thread creation failed: %d\n", rt);
+		return -1;	
+	}
+	
+	}
+	
+	for(i=0;i<numThreads;i++) //Wait for all threads to finish
+	{
+		 pthread_join(threads[i], NULL);
+	}
+	clock_gettime(CLOCK_MONOTONIC, &stop);
+
+	printf("Threaded Run Pthread (Mutex) Total Count: %d\n", c);
+	result=timespecDiff(&stop,&start);
+	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+}
+
+if(testID == 0 || testID == 4) /*MySpinlockTTAS*/
+{
+	c=0;
+	struct timespec start;
+	struct timespec stop;
+	unsigned long long result; //64 bit integer
+
+	pthread_t *threads = (pthread_t* )malloc(sizeof(pthread_t)*numThreads);	
+	int i;
+	int rt;
+
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	for(i=0;i<numThreads;i++)
+	{
+	
+	 if( rt=(pthread_create( threads+i, NULL, &pthreadSpinklockTest, NULL)) )
+	{
+		printf("Thread creation failed: %d\n", rt);
+		return -1;	
+	}
+	
+	}
+	
+	for(i=0;i<numThreads;i++) //Wait for all threads to finish
+	{
+		 pthread_join(threads[i], NULL);
+	}
+	clock_gettime(CLOCK_MONOTONIC, &stop);
+
+	printf("Threaded Run Pthread (Mutex) Total Count: %d\n", c);
+	result=timespecDiff(&stop,&start);
+	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+}
+
+if(testID == 0 || testID == 5) /*Exponential Back off Lock (Mutex)*/
+{
+	c=0;
+	struct timespec start;
+	struct timespec stop;
+	unsigned long long result; //64 bit integer
+
+	pthread_t *threads = (pthread_t* )malloc(sizeof(pthread_t)*numThreads);	
+	int i;
+	int rt;
+
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	for(i=0;i<numThreads;i++)
+	{
+	
+	 if( rt=(pthread_create( threads+i, NULL, &pthreadSpinklockTest, NULL)) )
+	{
+		printf("Thread creation failed: %d\n", rt);
+		return -1;	
+	}
+	
+	}
+	
+	for(i=0;i<numThreads;i++) //Wait for all threads to finish
+	{
+		 pthread_join(threads[i], NULL);
+	}
+	clock_gettime(CLOCK_MONOTONIC, &stop);
+
+	printf("Threaded Run Pthread (Mutex) Total Count: %d\n", c);
+	result=timespecDiff(&stop,&start);
+	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+}
+
+if(testID == 0 || testID == 6) /*Queue Lock ( Ticket Lock) */
+{
+	c=0;
+	struct timespec start;
+	struct timespec stop;
+	unsigned long long result; //64 bit integer
+
+	pthread_t *threads = (pthread_t* )malloc(sizeof(pthread_t)*numThreads);	
+	int i;
+	int rt;
+
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	for(i=0;i<numThreads;i++)
+	{
+	
+	 if( rt=(pthread_create( threads+i, NULL, &pthreadSpinklockTest, NULL)) )
+	{
+		printf("Thread creation failed: %d\n", rt);
+		return -1;	
+	}
+	
+	}
+	
+	for(i=0;i<numThreads;i++) //Wait for all threads to finish
+	{
+		 pthread_join(threads[i], NULL);
+	}
+	clock_gettime(CLOCK_MONOTONIC, &stop);
+
+	printf("Threaded Run Pthread (Mutex) Total Count: %d\n", c);
+	result=timespecDiff(&stop,&start);
+	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
 }
 
 /*....you must implement the other tests....*/
