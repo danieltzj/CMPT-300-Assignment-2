@@ -254,7 +254,7 @@ if(testID == 0 || testID == 2) /*Pthread Spinlock*/
 
 	printf("Threaded Run of %d threads using Pthread(spinlock) for %d iterations Total Count: %d\n",numThreads, numItterations,  c);
 	result=timespecDiff(&stop,&start);
-	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+	printf("Pthread Spinlock time(ms): %llu\n",result/1000000);
 	free(threads); // free allocated memory
 }
 
@@ -292,7 +292,7 @@ if(testID == 0 || testID == 3) /*MySpinlockTAS*/
 
 	printf("Threaded Run of %d threads using mySpinlockTAS for %d iterations Total Count: %d\n",numThreads, numItterations,  c);
 	result=timespecDiff(&stop,&start);
-	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+	printf("MySpinlockTAS time(ms): %llu\n",result/1000000);
 	free(threads); // free allocated memory
 }
 
@@ -330,7 +330,7 @@ if(testID == 0 || testID == 4) /*MySpinlockTTAS*/
 
 	printf("Threaded Run of %d threads using mySpinlockTTAS for %d iterations Total Count: %d\n",numThreads, numItterations,  c);
 	result=timespecDiff(&stop,&start);
-	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+	printf("MySpinlockTTAS time(ms): %llu\n",result/1000000);
 	free(threads); // free allocated memory
 }
 
@@ -368,7 +368,7 @@ if(testID == 0 || testID == 5) /*Exponential Back off Lock (Mutex)*/
 
 	printf("Threaded Run of %d threads using myMutexTAS for %d iterations Total Count: %d\n",numThreads, numItterations,  c);
 	result=timespecDiff(&stop,&start);
-	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+	printf("MyMutexTAS time(ms): %llu\n",result/1000000);
 	free(threads); // free allocated memory
 }
 
@@ -406,7 +406,7 @@ if(testID == 0 || testID == 6) /*Queue Lock ( Ticket Lock) */
 
 	printf("Threaded Run of %d threads using myQueueLock for %d iterations Total Count: %d\n",numThreads, numItterations,  c);
 	result=timespecDiff(&stop,&start);
-	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+	printf("MyQueuelock time(ms): %llu\n",result/1000000);
 	free(threads); // free allocated memory
 }
 

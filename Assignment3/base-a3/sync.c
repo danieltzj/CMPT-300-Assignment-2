@@ -8,7 +8,7 @@
 
 #define _REENTRANT
 #define MIN_DELAY 1
-#define MAX_DELAY 100
+#define MAX_DELAY 10
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -88,8 +88,8 @@ int my_mutex_unlock(my_mutex_t *lock)
 
 int my_mutex_lock(my_mutex_t *lock)
 {
-	useconds_t delay = MIN_DELAY;
-	useconds_t max_Delay = MAX_DELAY;
+	int delay = MIN_DELAY;
+	int max_Delay = MAX_DELAY;
 	while (1)
 	{
 		while(lock->lock_value == 1) {};
@@ -107,8 +107,8 @@ int my_mutex_lock(my_mutex_t *lock)
 
 int my_mutex_trylock(my_mutex_t *lock)
 {
-	useconds_t delay = MIN_DELAY;
-	useconds_t max_Delay = MAX_DELAY;
+	int delay = MIN_DELAY;
+	int max_Delay = MAX_DELAY;
 	while (1)
 	{
 		while(lock->lock_value == 1) 
@@ -119,7 +119,7 @@ int my_mutex_trylock(my_mutex_t *lock)
 		{
 			return 0;
 		}
-		sleep(rand() % delay);
+		usleep(rand() % delay);
 		if (delay < max_Delay)
 		{
 			delay = 2 * delay;
