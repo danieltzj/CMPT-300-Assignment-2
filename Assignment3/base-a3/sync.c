@@ -102,8 +102,8 @@ int my_mutex_lock(my_mutex_t *lock)
 		{
 			return 0;
 		}
-		nanosleep(&tim, &tim2);
 		tim.tv_nsec = rand() % delay;
+		nanosleep(&tim, &tim2);
 		if (delay < max_Delay)
 		{
 			delay = 2 * delay;
@@ -113,6 +113,7 @@ int my_mutex_lock(my_mutex_t *lock)
 
 int my_mutex_trylock(my_mutex_t *lock)
 {
+	int check;
 	int delay = MIN_DELAY;
 	int max_Delay = MAX_DELAY;
 	struct timespec tim, tim2;
@@ -128,8 +129,8 @@ int my_mutex_trylock(my_mutex_t *lock)
 		{
 			return 0;
 		}
-		nanosleep(&tim, &tim2);
 		tim.tv_nsec = rand() % delay;
+		nanosleep(&tim, &tim2);
 		if (delay < max_Delay)
 		{
 			delay = 2 * delay;
