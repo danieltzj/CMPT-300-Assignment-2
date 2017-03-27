@@ -16,6 +16,33 @@ void *fnC()
 pthread_mutex_t count_mutex;
 pthread_spinlock_t spinlock;
 
+void *pthreadMutexTest()
+{
+	
+    int i;
+	int j;
+	int k;
+	
+	int localCount = 0;
+	
+    for(i=0;i<numItterations;i++)
+    {
+		
+		for(j=0;j<workOutsideCS;j++)/*How much work is done outside the CS*/
+		{
+			localCount++;
+		}
+		
+		pthread_mutex_lock(&count_mutex);
+		for(k=0;k<workInsideCS;k++)/*How much work is done inside the CS*/
+		{
+			c++;
+		}
+		pthread_mutex_unlock(&count_mutex);    
+	
+    }   
+}
+
 void *pthreadSpinklockTest()
 {
 	
@@ -43,7 +70,7 @@ void *pthreadSpinklockTest()
     }   
 }
 
-void *pthreadMutexTest()
+void *mySpinlockTASTest()
 {
 	
     int i;
@@ -60,16 +87,95 @@ void *pthreadMutexTest()
 			localCount++;
 		}
 		
-		pthread_mutex_lock(&count_mutex);
+		my_spinlock_lockTAS(&spinlockTAS);
 		for(k=0;k<workInsideCS;k++)/*How much work is done inside the CS*/
 		{
 			c++;
 		}
-		pthread_mutex_unlock(&count_mutex);    
+		my_spinlock_unlock(&spinlockTAS);    
 	
     }   
+}
 
+void *mySpinlockTTASTest()
+{
+	
+    int i;
+	int j;
+	int k;
+	
+	int localCount = 0;
+	
+    for(i=0;i<numItterations;i++)
+    {
+		
+		for(j=0;j<workOutsideCS;j++)/*How much work is done outside the CS*/
+		{
+			localCount++;
+		}
+		
+		my_spinlock_lockTTAS(&spinlockTTAS);
+		for(k=0;k<workInsideCS;k++)/*How much work is done inside the CS*/
+		{
+			c++;
+		}
+		my_spinlock_unlock(&spinlockTTAS);   
+	
+    }   
+}
 
+void *myMutexTASTest()
+{
+	
+    int i;
+	int j;
+	int k;
+	
+	int localCount = 0;
+	
+    for(i=0;i<numItterations;i++)
+    {
+		
+		for(j=0;j<workOutsideCS;j++)/*How much work is done outside the CS*/
+		{
+			localCount++;
+		}
+		
+		my_mutex_lock(&mutexTAS);
+		for(k=0;k<workInsideCS;k++)/*How much work is done inside the CS*/
+		{
+			c++;
+		}
+		my_mutex_unlock(&mutexTAS);
+	
+    }   
+}
+
+void *myQueueLockTest()
+{
+	
+    int i;
+	int j;
+	int k;
+	
+	int localCount = 0;
+	
+    for(i=0;i<numItterations;i++)
+    {
+		
+		for(j=0;j<workOutsideCS;j++)/*How much work is done outside the CS*/
+		{
+			localCount++;
+		}
+		
+		my_queuelock_lock(&queuelockCAS);
+		for(k=0;k<workInsideCS;k++)/*How much work is done inside the CS*/
+		{
+			c++;
+		}
+		my_queuelock_unlock(&queuelockCAS);   
+	
+    }   
 }
 
 int runTest(int testID)
@@ -106,9 +212,10 @@ if (testID == 0 || testID == 1 ) /*Pthread Mutex*/
 	}
 	clock_gettime(CLOCK_MONOTONIC, &stop);
 
-	printf("Threaded Run Pthread (Mutex) Total Count: %d\n", c);
+	printf("Threaded Run of %d threads using Pthread(mutex) for %d iterations Total Count: %d\n",numThreads, numItterations,  c);
 	result=timespecDiff(&stop,&start);
 	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+	free(threads); // free allocated memory
 
 }
 
@@ -124,6 +231,7 @@ if(testID == 0 || testID == 2) /*Pthread Spinlock*/
 	int i;
 	int rt;
 
+	pthread_spin_init(&spinlock, PTHREAD_PROCESS_SHARED);
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	for(i=0;i<numThreads;i++)
 	{
@@ -142,9 +250,12 @@ if(testID == 0 || testID == 2) /*Pthread Spinlock*/
 	}
 	clock_gettime(CLOCK_MONOTONIC, &stop);
 
-	printf("Threaded Run Pthread (Mutex) Total Count: %d\n", c);
+	pthread_spin_destroy(&spinlock);
+
+	printf("Threaded Run of %d threads using Pthread(spinlock) for %d iterations Total Count: %d\n",numThreads, numItterations,  c);
 	result=timespecDiff(&stop,&start);
 	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+	free(threads); // free allocated memory
 }
 
 if(testID == 0 || testID == 3) /*MySpinlockTAS*/
@@ -154,6 +265,7 @@ if(testID == 0 || testID == 3) /*MySpinlockTAS*/
 	struct timespec stop;
 	unsigned long long result; //64 bit integer
 
+	my_spinlock_init(&spinlockTAS);
 	pthread_t *threads = (pthread_t* )malloc(sizeof(pthread_t)*numThreads);	
 	int i;
 	int rt;
@@ -162,7 +274,7 @@ if(testID == 0 || testID == 3) /*MySpinlockTAS*/
 	for(i=0;i<numThreads;i++)
 	{
 	
-	 if( rt=(pthread_create( threads+i, NULL, &pthreadSpinklockTest, NULL)) )
+	 if( rt=(pthread_create( threads+i, NULL, &mySpinlockTASTest, NULL)) )
 	{
 		printf("Thread creation failed: %d\n", rt);
 		return -1;	
@@ -176,9 +288,12 @@ if(testID == 0 || testID == 3) /*MySpinlockTAS*/
 	}
 	clock_gettime(CLOCK_MONOTONIC, &stop);
 
-	printf("Threaded Run Pthread (Mutex) Total Count: %d\n", c);
+	my_spinlock_destroy(&spinlockTAS);
+
+	printf("Threaded Run of %d threads using mySpinlockTAS for %d iterations Total Count: %d\n",numThreads, numItterations,  c);
 	result=timespecDiff(&stop,&start);
 	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+	free(threads); // free allocated memory
 }
 
 if(testID == 0 || testID == 4) /*MySpinlockTTAS*/
@@ -192,11 +307,12 @@ if(testID == 0 || testID == 4) /*MySpinlockTTAS*/
 	int i;
 	int rt;
 
+	my_spinlock_init(&spinlockTTAS);
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	for(i=0;i<numThreads;i++)
 	{
 	
-	 if( rt=(pthread_create( threads+i, NULL, &pthreadSpinklockTest, NULL)) )
+	 if( rt=(pthread_create( threads+i, NULL, &mySpinlockTTASTest, NULL)) )
 	{
 		printf("Thread creation failed: %d\n", rt);
 		return -1;	
@@ -210,9 +326,12 @@ if(testID == 0 || testID == 4) /*MySpinlockTTAS*/
 	}
 	clock_gettime(CLOCK_MONOTONIC, &stop);
 
-	printf("Threaded Run Pthread (Mutex) Total Count: %d\n", c);
+	my_spinlock_destroy(&spinlockTTAS);
+
+	printf("Threaded Run of %d threads using mySpinlockTTAS for %d iterations Total Count: %d\n",numThreads, numItterations,  c);
 	result=timespecDiff(&stop,&start);
 	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+	free(threads); // free allocated memory
 }
 
 if(testID == 0 || testID == 5) /*Exponential Back off Lock (Mutex)*/
@@ -226,11 +345,12 @@ if(testID == 0 || testID == 5) /*Exponential Back off Lock (Mutex)*/
 	int i;
 	int rt;
 
+	my_mutex_init(&mutexTAS);
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	for(i=0;i<numThreads;i++)
 	{
 	
-	 if( rt=(pthread_create( threads+i, NULL, &pthreadSpinklockTest, NULL)) )
+	 if( rt=(pthread_create( threads+i, NULL, &myMutexTASTest, NULL)) )
 	{
 		printf("Thread creation failed: %d\n", rt);
 		return -1;	
@@ -244,9 +364,12 @@ if(testID == 0 || testID == 5) /*Exponential Back off Lock (Mutex)*/
 	}
 	clock_gettime(CLOCK_MONOTONIC, &stop);
 
-	printf("Threaded Run Pthread (Mutex) Total Count: %d\n", c);
+	my_mutex_destroy(&mutexTAS);
+
+	printf("Threaded Run of %d threads using myMutexTAS for %d iterations Total Count: %d\n",numThreads, numItterations,  c);
 	result=timespecDiff(&stop,&start);
 	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+	free(threads); // free allocated memory
 }
 
 if(testID == 0 || testID == 6) /*Queue Lock ( Ticket Lock) */
@@ -260,11 +383,12 @@ if(testID == 0 || testID == 6) /*Queue Lock ( Ticket Lock) */
 	int i;
 	int rt;
 
+	my_queuelock_init(&queuelockCAS);
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	for(i=0;i<numThreads;i++)
 	{
 	
-	 if( rt=(pthread_create( threads+i, NULL, &pthreadSpinklockTest, NULL)) )
+	 if( rt=(pthread_create( threads+i, NULL, &myQueueLockTest, NULL)) )
 	{
 		printf("Thread creation failed: %d\n", rt);
 		return -1;	
@@ -278,9 +402,12 @@ if(testID == 0 || testID == 6) /*Queue Lock ( Ticket Lock) */
 	}
 	clock_gettime(CLOCK_MONOTONIC, &stop);
 
-	printf("Threaded Run Pthread (Mutex) Total Count: %d\n", c);
+	my_queuelock_destroy(&queuelockCAS);
+
+	printf("Threaded Run of %d threads using myQueueLock for %d iterations Total Count: %d\n",numThreads, numItterations,  c);
 	result=timespecDiff(&stop,&start);
 	printf("Pthread Mutex time(ms): %llu\n",result/1000000);
+	free(threads); // free allocated memory
 }
 
 /*....you must implement the other tests....*/

@@ -14,5 +14,10 @@ static inline unsigned long cas(volatile unsigned long* ptr, unsigned long old, 
 
 }
 
+static inline unsigned long faa(volatile unsigned long* ticket)
+{
+	return __sync_fetch_and_add(ticket,1);
+}
+
 
 #endif // __ATOMIC_OPS_H__

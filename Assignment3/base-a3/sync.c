@@ -7,8 +7,8 @@
  */
 
 #define _REENTRANT
-#define MIN_DELAY 100
-#define MAX_DELAY 100000
+#define MIN_DELAY 1
+#define MAX_DELAY 100
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -38,7 +38,7 @@ int my_spinlock_unlock(my_spinlock_t *lock)
 
 int my_spinlock_lockTAS(my_spinlock_t *lock)
 {
-	while(tas( &(lock->lock_value)));
+	while(tas( &(lock->lock_value))) {};
 	return 0;
 }
 
@@ -48,7 +48,7 @@ int my_spinlock_lockTTAS(my_spinlock_t *lock)
 	while(1)
 	{
 		while(lock->lock_value == 1) {};
-		if (tas( &(lock->lock_value)))
+		if (!tas( &(lock->lock_value)))
 		{
 			return 0;
 		}
@@ -57,6 +57,11 @@ int my_spinlock_lockTTAS(my_spinlock_t *lock)
 
 int my_spinlock_trylock(my_spinlock_t *lock)
 {
+	while(tas( &(lock->lock_value)))
+	{
+		return -1;
+	}
+	return 0;
 }
 
 
@@ -83,16 +88,17 @@ int my_mutex_unlock(my_mutex_t *lock)
 
 int my_mutex_lock(my_mutex_t *lock)
 {
-	int delay = MIN_DELAY;
+	useconds_t delay = MIN_DELAY;
+	useconds_t max_Delay = MAX_DELAY;
 	while (1)
 	{
 		while(lock->lock_value == 1) {};
-		if (tas( &(lock->lock_value)))
+		if (!tas( &(lock->lock_value)))
 		{
 			return 0;
 		}
 		sleep(rand() % delay);
-		if (delay < MAX_DELAY)
+		if (delay < max_Delay)
 		{
 			delay = 2 * delay;
 		}
@@ -101,6 +107,24 @@ int my_mutex_lock(my_mutex_t *lock)
 
 int my_mutex_trylock(my_mutex_t *lock)
 {
+	useconds_t delay = MIN_DELAY;
+	useconds_t max_Delay = MAX_DELAY;
+	while (1)
+	{
+		while(lock->lock_value == 1) 
+		{
+			return -1;
+		}
+		if (!tas( &(lock->lock_value)))
+		{
+			return 0;
+		}
+		sleep(rand() % delay);
+		if (delay < max_Delay)
+		{
+			delay = 2 * delay;
+		}
+	}
 }
 
 /*
@@ -109,7 +133,6 @@ int my_mutex_trylock(my_mutex_t *lock)
 
 int my_queuelock_init(my_queuelock_t *lock)
 {
-	lock->lock_value = 0;
 	lock->now_serving = 0;
 	lock->next_ticket = 0;
 	return 0;
@@ -128,11 +151,24 @@ int my_queuelock_unlock(my_queuelock_t *lock)
 
 int my_queuelock_lock(my_queuelock_t *lock)
 {
-	while(cas( &(lock->lock_value), lock->now_serving, lock->next_ticket)) {};
+	int my_ticket;
+
+	my_ticket = faa(&(lock->next_ticket));
+
+	while(lock->now_serving != my_ticket){ /*spin*/ };
 	return 0;
 }
 
 int my_queuelock_trylock(my_queuelock_t *lock)
 {
+	int my_ticket;
+
+	my_ticket = faa(&(lock->next_ticket));
+
+	while(lock->now_serving != my_ticket)
+	{
+		return -1;
+	}
+	return 0;
 }
 
