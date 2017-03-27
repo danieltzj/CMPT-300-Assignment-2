@@ -7,11 +7,13 @@
  */
 
 #define _REENTRANT
-#define MIN_DELAY 1
-#define MAX_DELAY 10
+#define MIN_DELAY 50
+#define MAX_DELAY 250
 
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
 #include "sync.h"
 
 
@@ -90,6 +92,9 @@ int my_mutex_lock(my_mutex_t *lock)
 {
 	int delay = MIN_DELAY;
 	int max_Delay = MAX_DELAY;
+	struct timespec tim, tim2;
+	tim.tv_sec = 0;
+	tim.tv_nsec = delay;
 	while (1)
 	{
 		while(lock->lock_value == 1) {};
@@ -97,7 +102,8 @@ int my_mutex_lock(my_mutex_t *lock)
 		{
 			return 0;
 		}
-		sleep(rand() % delay);
+		nanosleep(&tim, &tim2);
+		tim.tv_nsec = rand() % delay;
 		if (delay < max_Delay)
 		{
 			delay = 2 * delay;
@@ -109,6 +115,9 @@ int my_mutex_trylock(my_mutex_t *lock)
 {
 	int delay = MIN_DELAY;
 	int max_Delay = MAX_DELAY;
+	struct timespec tim, tim2;
+	tim.tv_sec = 0;
+	tim.tv_nsec = delay;
 	while (1)
 	{
 		while(lock->lock_value == 1) 
@@ -119,7 +128,8 @@ int my_mutex_trylock(my_mutex_t *lock)
 		{
 			return 0;
 		}
-		usleep(rand() % delay);
+		nanosleep(&tim, &tim2);
+		tim.tv_nsec = rand() % delay;
 		if (delay < max_Delay)
 		{
 			delay = 2 * delay;
@@ -156,6 +166,7 @@ int my_queuelock_lock(my_queuelock_t *lock)
 	my_ticket = faa(&(lock->next_ticket));
 
 	while(lock->now_serving != my_ticket){ /*spin*/ };
+	printf("%d\n", my_ticket );
 	return 0;
 }
 
