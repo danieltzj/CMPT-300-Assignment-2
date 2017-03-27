@@ -118,7 +118,6 @@ int my_mutex_trylock(my_mutex_t *lock)
 	int max_Delay = MAX_DELAY;
 	struct timespec tim, tim2;
 	tim.tv_sec = 0;
-	tim.tv_nsec = delay;
 	while (1)
 	{
 		while(lock->lock_value == 1) 
