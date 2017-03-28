@@ -166,7 +166,7 @@ int my_queuelock_lock(my_queuelock_t *lock)
 	my_ticket = faa(&(lock->next_ticket));
 
 	while(lock->now_serving != my_ticket){ /*spin*/ };
-	//printf("%d\n", my_ticket );
+	printf("%d\n", my_ticket );
 	return 0;
 }
 
